@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Juego LAM para Grado Sexto</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f8ff;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+    }
+    header {
+        background-color: #ff9800;
+        color: white;
+        padding: 15px;
+        font-size: 24px;
+        font-weight: bold;
+    }
+    .quiz-container, .matching-container {
+        background-color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin: 20px auto;
+        width: 80%;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+    .question {
+        font-size: 18px;
+        margin: 10px 0;
+    }
+    button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px;
+        margin: 5px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #45a049;
+    }
+    #score {
+        font-size: 20px;
+        margin-top: 15px;
+        font-weight: bold;
+        color: #333;
+    }
+    /* Matching Game */
+    .matching-container {
+        display: none;
+    }
+    .matching-game {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 20px;
+    }
+    .column {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .item {
+        background-color: #e91e63;
+        color: white;
+        padding: 10px;
+        margin: 5px;
+        border-radius: 10px;
+        cursor: pointer;
+        width: 200px;
+        text-align: center;
+        user-select: none;
+    }
+    .item.selected {
+        background-color: #2196f3;
+    }
+    #matching-message {
+        margin-top: 15px;
+        font-weight: bold;
+        color: #444;
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <img src="https://i.ibb.co/kJ7KH7b/logo-lam.png" alt="Logo LAM" height="50">
+    Juego LAM - Aprende Jugando
+</header>
+
+<!-- Quiz de selección múltiple -->
+<div class="quiz-container" id="quiz-section">
+    <h2>Trivia LAM</h2>
+    <div id="quiz"></div>
+    <div id="score">Puntaje: 0</div>
+</div>
+
+<!-- Juego de emparejamiento -->
+<div class="matching-container" id="matching-section">
+    <h2>Emparejamiento LAM</h2>
+    <p>Haz clic en un concepto y luego en su definición correcta para ganar puntos.</p>
+    <div class="matching-game">
+        <div class="column" id="left-column"></div>
+        <div class="column" id="right-column"></div>
+    </div>
+    <div id="matching-message"></div>
+</div>
+
+<script>
+    let score = 0;
+    const quizData = [
+        { question: "¿Qué significa LAM?", options: ["Language Agent Model", "Learning AI Machine", "Logical Analysis Model"], answer: 0 },
+        { question: "¿Qué hace un agente en LAM?", options: ["Procesa lenguaje y actúa", "Solo traduce", "Dibuja gráficos"], answer: 0 },
+        { question: "¿Qué habilidad clave tiene LAM?", options: ["Entender lenguaje humano", "Calcular impuestos", "Hacer deporte"], answer: 0 },
+        { question: "¿En qué se basa LAM para aprender?", options: ["Datos y patrones", "Adivinación", "Suerte"], answer: 0 },
+        { question: "¿Qué edad es ideal para aprender LAM?", options: ["Cualquier edad", "Solo adultos", "Solo niños"], answer: 0 }
+    ];
+    let currentQuiz = 0;
+
+    function loadQuiz() {
+        if (currentQuiz >= quizData.length) {
+            document.getElementById("quiz-section").style.display = "none";
+            document.getElementById("matching-section").style.display = "block";
+            loadMatching();
+            return;
+        }
+        const quizContainer = document.getElementById("quiz");
+        quizContainer.innerHTML = "";
+        const q = quizData[currentQuiz];
+        const questionElem = document.createElement("div");
+        questionElem.className = "question";
+        questionElem.innerText = q.question;
+        quizContainer.appendChild(questionElem);
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement("button");
+            btn.innerText = opt;
+            btn.onclick = () => {
+                if (i === q.answer) score += 10;
+                document.getElementById("score").innerText = "Puntaje: " + score;
+                currentQuiz++;
+                loadQuiz();
+            };
+            quizContainer.appendChild(btn);
+        });
+    }
+    loadQuiz();
+
+    // Matching Game
+    const matchingPairs = [
+        ["Agente", "Entidad que actúa en base a información"],
+        ["Lenguaje Natural", "Forma en que las personas se comunican"],
+        ["Modelo", "Representación de un sistema o idea"],
+        ["IA", "Inteligencia Artificial"],
+        ["Datos", "Información que alimenta al modelo"]
+    ];
+    let selectedItem = null;
+    let matched = 0;
+
+    function loadMatching() {
+        const leftColumn = document.getElementById("left-column");
+        const rightColumn = document.getElementById("right-column");
+        leftColumn.innerHTML = "";
+        rightColumn.innerHTML = "";
+
+        matchingPairs.forEach((pair, index) => {
+            const leftItem = document.createElement("div");
+            leftItem.className = "item";
+            leftItem.innerText = pair[0];
+            leftItem.dataset.index = index;
+            leftItem.onclick = () => selectItem(leftItem, "left");
+
+            const rightItem = document.createElement("div");
+            rightItem.className = "item";
+            rightItem.innerText = pair[1];
+            rightItem.dataset.index = index;
+            rightItem.onclick = () => selectItem(rightItem, "right");
+
+            leftColumn.appendChild(leftItem);
+            rightColumn.appendChild(rightItem);
+        });
+    }
+
+    function selectItem(element, column) {
+        if (!selectedItem) {
+            selectedItem = { element, column };
+            element.classList.add("selected");
+        } else {
+            if (selectedItem.column !== column) {
+                if (selectedItem.element.dataset.index === element.dataset.index) {
+                    score += 10;
+                    matched++;
+                    document.getElementById("score").innerText = "Puntaje: " + score;
+                    document.getElementById("matching-message").innerText = "¡Correcto!";
+                    selectedItem.element.style.visibility = "hidden";
+                    element.style.visibility = "hidden";
+                } else {
+                    document.getElementById("matching-message").innerText = "Intenta de nuevo.";
+                }
+                selectedItem.element.classList.remove("selected");
+                selectedItem = null;
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
+
